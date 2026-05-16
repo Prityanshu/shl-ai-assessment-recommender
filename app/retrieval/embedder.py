@@ -1,12 +1,39 @@
-from sentence_transformers import SentenceTransformer
-
-
-model = SentenceTransformer(
-    "BAAI/bge-small-en-v1.5"
+from sentence_transformers import (
+    SentenceTransformer
 )
 
 
+model = None
+
+
+def get_model():
+
+    global model
+
+
+    if model is None:
+
+        print(
+
+            "Loading embedding model..."
+
+        )
+
+
+        model = SentenceTransformer(
+
+            "BAAI/bge-small-en-v1.5"
+
+        )
+
+
+    return model
+
+
+
+
 def create_document(item):
+
 
     return f"""
 
@@ -35,11 +62,18 @@ Languages:
 {", ".join(item.get("languages",[]))}
 
 """
-    
 
-def generate_embedding(text):
 
-    return model.encode(
+
+def generate_embedding(
+
+
+    text
+
+):
+
+
+    return get_model().encode(
 
         text,
 
