@@ -1,22 +1,17 @@
 # Approach Document — SHL AI Assessment Recommender
 
-## 1. Problem Understanding
+## 1. Design Choices
 
-The objective was to build a conversational recommendation system capable of suggesting relevant SHL assessments based on hiring requirements while supporting clarification, refinement, comparison, and safe responses.
+The system was designed as a conversational recommendation API that suggests SHL assessments based on hiring requirements. The main goals were:
 
-The system must:
+- Support vague queries through clarification
+- Preserve constraints across multiple turns
+- Recommend only SHL catalog items
+- Support refinement (e.g., adding personality requirements later)
+- Compare assessments on request
+- Prevent out-of-scope or unsafe responses
 
-- Recommend only SHL assessments
-- Handle multi-turn conversations
-- Refine constraints over time
-- Support assessment comparison
-- Resist prompt injection and out-of-scope queries
-
----
-
-## 2. System Architecture
-
-Pipeline:
+The architecture follows:
 
 User Query
 
@@ -30,88 +25,87 @@ Constraint Extraction (LLM)
 
 ↓
 
-FAISS Retrieval
+Semantic Retrieval (FAISS)
 
 ↓
 
-Recommendation Generation
+Recommendation Logic
 
 ↓
 
 Response Formatting
 
-The API is implemented using FastAPI and deployed publicly.
+↓
+
+Evaluation
+
+
+FastAPI was used for serving the API and Swagger UI for testing.
 
 ---
 
-## 3. Constraint Extraction
+## 2. Retrieval Setup
 
-An LLM extracts:
+Retrieval uses:
 
-- Skills
-- Seniority
-- Personality requirements
-- Communication requirements
-- Leadership requirements
-- Duration constraints
+- Sentence embeddings for semantic search
+- FAISS vector index for nearest-neighbor retrieval
+- Category-based reranking
+- Deduplication of retrieved assessments
 
-Constraints are cumulative across turns.
+The SHL catalog is embedded into vectors and stored in a FAISS index.
+
+Queries retrieve relevant assessments using constraints such as:
+
+- skills
+- seniority
+- personality
+- communication
+- leadership
+
+Combined constraints are supported.
 
 Example:
-
-User:
 
 Need Java developer
 
-User:
+↓
 
 Add personality tests
 
-Result:
-
-Java + personality retained
-
----
-
-## 4. Retrieval Strategy
-
-The system uses:
-
-- Sentence embeddings
-- FAISS similarity search
-- Semantic retrieval
-- Category-based reranking
-- Deduplication
-
-Retrieved assessments are restricted to the SHL catalog.
-
----
-
-## 5. Conversation Handling
-
-Supports:
-
-### Clarification
-
-Incomplete requests trigger follow-up questions.
-
-Example:
-
-"I need an assessment"
-
 ↓
 
-"What role, skill, or position are you hiring for?"
+Java + personality recommendations
+
+Retrieval quality was measured using Recall@10.
+
+Results:
+
+Mean Recall@10 = 0.94
+
+across 8 conversation traces.
 
 ---
 
-### Refinement
+## 3. Prompt Design
 
-User updates modify existing constraints.
+LLM prompts were used for:
+
+### Constraint extraction
+
+Extract:
+
+- skills
+- seniority
+- personality requirements
+- communication requirements
+- leadership requirements
+
+Constraints remain cumulative across turns.
 
 Example:
 
-Senior Java developer
+Need senior Java developer
 
 ↓
 
@@ -119,9 +113,8 @@ Actually make it entry level
 
 ↓
 
-Updated recommendations returned
+Updated constraints returned
 
----
 
 ### Comparison
 
@@ -131,83 +124,111 @@ Compare Java 8 and OPQ
 
 ↓
 
-Structured assessment comparison
+Structured comparison response
+
+
+Guardrails reject:
+
+- prompt injection
+- legal advice
+- medical advice
+- non-SHL recommendations
 
 ---
 
-## 6. Guardrails
-
-Rejects:
-
-- Prompt injection
-- Legal advice
-- Medical advice
-- Non-SHL recommendations
-
-This ensures safe and domain-specific responses.
-
----
-
-## 7. Evaluation
+## 4. Evaluation Approach
 
 Evaluation included:
 
-- Schema compliance
-- Catalog-only recommendation checks
-- Turn cap validation
-- Mean Recall@10 across conversation traces
-- Behavior probe pass-rate
+### Hard Evaluations
 
-Results:
+Schema compliance:
+
+PASS
+
+Catalog-only recommendations:
+
+PASS
+
+Turn cap (<8):
+
+PASS
+
+
+### Retrieval Metric
 
 Mean Recall@10:
 
 0.94
 
+
+### Behavior Probes
+
+Measured:
+
+- clarification behavior
+- refinement handling
+- prompt injection refusal
+- legal refusal
+- comparison handling
+- hallucination prevention
+
 Behavior Probe Pass Rate:
 
-1.00
-
-Schema Compliance:
-
-PASS
-
-Turn Cap:
-
-PASS (<8)
-
-Catalog-only Recommendations:
-
-PASS
+100%
 
 ---
 
-## 8. Deployment Challenges
+## 5. What Did Not Work Initially
 
-Initial deployment exceeded Render memory limits due to embedding model dependencies.
+Several issues appeared during development:
 
-Optimization steps:
+### Leadership retrieval mismatch
 
-- Reduced embedding model size
-- Optimized dependencies
-- Switched to CPU-compatible deployment setup
+Leadership constraints were initially not retrieved correctly due to mismatch between retrieval queries and catalog terminology.
+
+Improvement:
+
+Adjusted retrieval queries and recommender logic.
 
 Result:
 
-Successful public deployment while preserving retrieval quality.
+Leadership Recall improved from:
+
+0.0
+
+↓
+
+1.0
+
+
+### Deployment memory limits
+
+Initial deployment exceeded Render free-tier memory due to embedding dependencies.
+
+Improvement:
+
+- Reduced dependency size
+- Optimized embedding setup
+- Simplified deployment requirements
+
+Result:
+
+Successful deployment while preserving retrieval performance.
 
 ---
 
-## 9. AI Usage Disclosure
+## 6. AI Tool Usage
 
 AI tools were used for:
 
-- Debugging
-- Deployment troubleshooting
-- Code refinement
-- Documentation assistance
+- debugging
+- deployment troubleshooting
+- evaluation design
+- documentation refinement
+- code improvement suggestions
 
-Architecture decisions, testing, and validation were performed manually.
+Architecture choices, testing, and validation were performed manually.
 
 ---
 
