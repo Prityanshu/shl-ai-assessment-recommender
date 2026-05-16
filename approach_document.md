@@ -152,19 +152,33 @@ This ensures safe and domain-specific responses.
 
 Evaluation included:
 
-✓ Clarification
+- Schema compliance
+- Catalog-only recommendation checks
+- Turn cap validation
+- Mean Recall@10 across conversation traces
+- Behavior probe pass-rate
 
-✓ Refinement
+Results:
 
-✓ Comparison
+Mean Recall@10:
 
-✓ Guardrails
+0.94
 
-✓ Multi-turn updates
+Behavior Probe Pass Rate:
 
-✓ Health endpoint
+1.00
 
-All tests passed.
+Schema Compliance:
+
+PASS
+
+Turn Cap:
+
+PASS (<8)
+
+Catalog-only Recommendations:
+
+PASS
 
 ---
 

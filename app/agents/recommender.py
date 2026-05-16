@@ -14,15 +14,19 @@ def recommend(
     all_results = []
 
 
+    skills = [
 
-    skills = constraints.get(
+        s.lower()
 
-        "skills",
+        for s in constraints.get(
 
-        []
+            "skills",
 
-    )
+            []
 
+        )
+
+    ]
 
 
     seniority = constraints.get(
@@ -34,7 +38,7 @@ def recommend(
 
 
     # ==================================
-    # Skill-based retrieval
+    # Skill retrieval
     # ==================================
 
     if skills:
@@ -77,7 +81,7 @@ def recommend(
 
         personality_results = search_catalog(
 
-            "personality assessment",
+            "personality",
 
             top_k=3
 
@@ -93,7 +97,7 @@ def recommend(
 
 
     # ==================================
-    # Communication / teamwork
+    # Communication
     # ==================================
 
     if (
@@ -121,7 +125,7 @@ def recommend(
 
         communication_results = search_catalog(
 
-            "communication teamwork assessment",
+            "communication teamwork",
 
             top_k=3
 
@@ -142,6 +146,14 @@ def recommend(
 
     if (
 
+        constraints.get(
+
+            "leadership"
+
+        )
+
+        or
+
         "leadership"
 
         in skills
@@ -151,7 +163,7 @@ def recommend(
 
         leadership_results = search_catalog(
 
-            "leadership assessment",
+            "leadership",
 
             top_k=3
 
@@ -191,7 +203,7 @@ def recommend(
 
         manager_results = search_catalog(
 
-            "manager competency leadership",
+            "manager leadership competency",
 
             top_k=3
 
