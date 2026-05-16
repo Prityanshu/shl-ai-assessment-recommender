@@ -22,7 +22,7 @@ def get_model():
 
         model = SentenceTransformer(
 
-            "BAAI/bge-small-en-v1.5"
+            "sentence-transformers/all-MiniLM-L6-v2"
 
         )
 
